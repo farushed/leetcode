@@ -1,54 +1,40 @@
 // https://leetcode.com/problems/possible-bipartition/
-// Runtime 27 ms Beats 82.46%
-// Memory 69.1 MB Beats 72.19%
+// Runtime 11 ms Beats 98.86%
+// Memory 49.3 MB Beats 99.82%
 
 class Solution {
-    private int[] uf;
-
     public boolean possibleBipartition(int n, int[][] dislikes) {
-        uf = new int[n+1];
-        int[] map = new int[n+1];
-        for (int i=0; i<n; i++) {
-            uf[i] = 0;
-            map[i] = 0;
-        }
+        List<Integer>[] graph = new List[n+1];
+        for (int i=1; i<=n; i++)
+            graph[i] = new ArrayList();
 
         for (int[] d : dislikes) {
-            int a = d[0]; int fa = find(a);
-            int b = d[1]; int fb = find(b);
-            if (fa == 0) { // a not connected to anything
-                if (fb == 0) { // b also not connected
-                    map[b] = a;
-                    map[a] = b;
-                    uf[b] = b;
-                    fb = b;
-                }
-                uf[a] = a;
-                union(a, map[fb]);
-            } else if (fb == 0) { // a connected, b not connected
-                uf[b] = b;
-                union(b, map[fa]);
-            } else { // both connected
-                union(map[fb], fa); // fa new root
-                union(map[fa], fb); // fb new root
-                map[fa] = fb;
-                map[fb] = fa;
-            }
-            // System.out.printf("a %d, find(a) %d, b %d, find(b) %d\n", a, find(a), b, find(b));
-            if (find(a) == find(b))
-                return false; // we connected two in the same group
+            graph[d[0]].add(d[1]);
+            graph[d[1]].add(d[0]);
         }
 
+        int[] cols = new int[n+1];
+        for (int i=0; i<=n; i++)
+            cols[i] = -1;
+
+        for (int i=1; i<=n; i++) {
+            if (cols[i] == -1 && !colour(graph, cols, i, 0))
+                return false;
+        }
         return true;
     }
 
-    private void union(int i, int j) {
-        uf[find(i)] = find(j);
-    }
+    private boolean colour(List<Integer>[] graph, int[] cols, int i, int col) {
+        if (cols[i] >= 0)
+            return cols[i] == col;
 
-    private int find(int i) {
-        while (uf[i] != i)
-            i = uf[i];
-        return i;
+        cols[i] = col;
+        int otherCol = col == 0 ? 1 : 0;
+
+        for (int j=0; j<graph[i].size(); j++)
+            if (!colour(graph, cols, graph[i].get(j), otherCol))
+                return false;
+
+        return true;
     }
 }
