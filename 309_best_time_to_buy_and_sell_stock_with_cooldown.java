@@ -1,30 +1,22 @@
 // https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/
-// Runtime 40 ms Beats 5%
-// Memory 42 MB Beats 68.62%
+// Runtime 1 ms Beats 90.22%
+// Memory 40.8 MB Beats 80.79%
 
 class Solution {
     public int maxProfit(int[] prices) {
-        int[] dp = new int[prices.length];
-        int[] dpMax = new int[prices.length];
+        int[] prev = new int[3];
+        prev[0] = 0; // no stock, ready to buy
+        prev[1] = -prices[0]; // held
+        prev[2] = 0; // just sold
 
-        for (int i=prices.length-1; i>=0; i--) {
-            dp[i] = 0;
-            for (int j=i+1; j<prices.length; j++) {
-                int m = Math.max(dp[j-1], dp[j]);
-                m = Math.max(m, prices[j]-prices[i]);
-                dp[j] = m;
-            }
-
-            int j = prices.length-1;
-            int m = dp[j];
-            for (int k=i+1; k+2<j; k++) {
-                m = Math.max(m, dp[k] + dpMax[k+2]);
-            }
-            dp[j] = m;
-            dpMax[i] = m;
+        for (int i=1; i<prices.length; i++) {
+            int[] cur = new int[3];
+            cur[0] = Math.max(prev[0], prev[2]); // previous day was rest or cooldown
+            cur[1] = Math.max(prev[0]-prices[i], prev[1]); // previous day rest+buy now, or keep holding
+            cur[2] = prev[1]+prices[i]; // sell+cooldown
+            prev = cur;
         }
-        // System.out.println(Arrays.toString(dp));
-        // System.out.println(Arrays.toString(dpMax));
-        return dpMax[0];
+
+        return Math.max(prev[0], prev[2]);
     }
 }
